@@ -273,7 +273,7 @@
       object-fit: contain;
       cursor: pointer;
       transform: rotate(-6deg);
-      transition: filter 0.8s ease;
+      transition: filter 0.8s ease, transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       transform-origin: bottom center;
     }
     @keyframes broccoliWiggle {
@@ -286,8 +286,19 @@
       85%  { transform: rotate(4deg) scale(1.01); }
       100% { transform: rotate(-6deg) scale(1); }
     }
+    @keyframes broccoliFall {
+      0%   { transform: rotate(-6deg); }
+      30%  { transform: rotate(-20deg); }
+      60%  { transform: rotate(60deg); }
+      80%  { transform: rotate(88deg); }
+      90%  { transform: rotate(84deg); }
+      100% { transform: rotate(90deg); }
+    }
     .hero-broccoli.wiggle {
       animation: broccoliWiggle 0.7s ease;
+    }
+    .hero-broccoli.fallen {
+      animation: broccoliFall 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .hero-card .hero-label {
       font-size: 0.8rem;
@@ -1069,6 +1080,11 @@ function removeBroccoliBackground() {
 function wiggleBroccoli() {
   const c = document.getElementById('hero-broccoli');
   if (!c) return;
+  // Als de broccoli gevallen is → laat hem even opspringen
+  if (c.classList.contains('fallen')) {
+    c.classList.remove('fallen');
+    c.style.transform = 'rotate(-6deg)';
+  }
   c.classList.remove('wiggle');
   void c.offsetWidth; // reflow to restart animation
   c.classList.add('wiggle');
@@ -1085,18 +1101,36 @@ function updateBroccoliHealth(thisWeek, thisMonth) {
     ratio = Math.min(thisWeek / weekBudget, 1.2);
   }
 
-  let f = '';
-  if (ratio >= 0.5 && ratio < 0.75) {
-    const t = (ratio - 0.5) / 0.25;
-    f = `saturate(${1 - t * 0.3}) hue-rotate(${t * 15}deg) brightness(${1 - t * 0.05})`;
-  } else if (ratio >= 0.75 && ratio < 1.0) {
-    const t = (ratio - 0.75) / 0.25;
-    f = `saturate(${0.7 - t * 0.4}) hue-rotate(${15 + t * 35}deg) brightness(${0.95 - t * 0.15}) sepia(${t * 0.4})`;
-  } else if (ratio >= 1.0) {
-    const t = Math.min((ratio - 1.0) / 0.2, 1);
-    f = `saturate(${0.3 - t * 0.2}) hue-rotate(50deg) brightness(${0.8 - t * 0.15}) sepia(${0.4 + t * 0.4}) grayscale(${t * 0.3})`;
+  const el = document.getElementById('hero-broccoli');
+
+  // --- Transform (tilt / fall) ---
+  if (ratio >= 1.0) {
+    // Over budget → omvallen
+    if (!el.classList.contains('fallen')) {
+      el.classList.remove('wiggle');
+      el.classList.add('fallen');
+    }
+  } else {
+    // Niet over budget → staand, lichte kanteling naar % op
+    el.classList.remove('fallen');
+    const tilt = ratio >= 0.75
+      ? -6 + (ratio - 0.75) / 0.25 * 20  // 75–100%: kantelt van -6° naar +14°
+      : -6;                                // 0–75%: normale stand
+    el.style.transform = `rotate(${tilt}deg)`;
   }
-  document.getElementById('hero-broccoli').style.filter = f || 'none';
+
+  // --- Filter (kleur / helderheid) ---
+  let f = '';
+  if (ratio >= 0.75 && ratio < 1.0) {
+    const t = (ratio - 0.75) / 0.25;
+    // Lichtjes donkerder + minder verzadigd naarmate budget nadert
+    f = `saturate(${1 - t * 0.3}) brightness(${1 - t * 0.15})`;
+  } else if (ratio >= 1.0) {
+    // Over budget → grijs + donker (droevige look, maar niet bruin)
+    const t = Math.min((ratio - 1.0) / 0.2, 1);
+    f = `saturate(${0.7 - t * 0.6}) brightness(${0.85 - t * 0.15}) grayscale(${t * 0.5})`;
+  }
+  el.style.filter = f || 'none';
 }
 
 // ── Transactie HTML ───────────────────────────────────────────────────────────
