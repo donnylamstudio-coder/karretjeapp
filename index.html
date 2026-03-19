@@ -537,6 +537,25 @@
       box-shadow: 0 6px 24px rgba(0,0,0,0.2);
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Confirm dialog ── */
+    #confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 999;
+      align-items: center; justify-content: center;
+    }
+    #confirm-overlay.show { display: flex; }
+    #confirm-box {
+      background: var(--card); border-radius: 20px;
+      padding: 28px 24px; width: 300px; max-width: 90vw;
+      text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    #confirm-box .cb-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    #confirm-box .cb-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; }
+    #confirm-box .cb-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+    .cb-actions { display: flex; gap: 10px; }
+    .cb-cancel { flex: 1; padding: 13px; border-radius: 12px; border: 2px solid var(--border); background: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; color: var(--text); }
+    .cb-confirm { flex: 1; padding: 13px; border-radius: 12px; border: none; background: var(--red); color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -689,6 +708,18 @@
 </main>
 
 <div id="toast"></div>
+
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <div class="cb-icon">🗑️</div>
+    <div class="cb-title">Verwijderen?</div>
+    <div class="cb-sub">Weet je zeker dat je deze aankoop wilt verwijderen?</div>
+    <div class="cb-actions">
+      <button class="cb-cancel" onclick="closeConfirm()">Annuleren</button>
+      <button class="cb-confirm" onclick="confirmDelete()">Verwijderen</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -909,12 +940,26 @@ function addExpense() {
 }
 
 // ── Verwijderen ───────────────────────────────────────────────────────────────
+let pendingDeleteId = null;
+
 function deleteExpense(id) {
-  expenses = expenses.filter(e => e.id !== id);
+  pendingDeleteId = id;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+
+function closeConfirm() {
+  pendingDeleteId = null;
+  document.getElementById('confirm-overlay').classList.remove('show');
+}
+
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  expenses = expenses.filter(e => e.id !== pendingDeleteId);
   save();
   renderHistory();
   renderDashboard();
   showToast('🗑 Verwijderd');
+  closeConfirm();
 }
 
 // ── Geschiedenis ──────────────────────────────────────────────────────────────
