@@ -2,6 +2,6 @@
 Thumbs.db
 desktop.ini
 
-# Icons generated
-icon-192.png
-icon-512.png
+# Windows temp files
+make-icons.ps1
+make-screenshot.ps1
