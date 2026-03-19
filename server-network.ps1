@@ -39,6 +39,10 @@ while ($listener.IsListening) {
         $bytes = [System.IO.File]::ReadAllBytes($file)
         $ext   = [System.IO.Path]::GetExtension($file).ToLower()
         $mime  = $mimes[$ext]
+        # Detect PNG by magic bytes even if extension is .jpg
+        if ($bytes.Length -ge 4 -and $bytes[0] -eq 0x89 -and $bytes[1] -eq 0x50 -and $bytes[2] -eq 0x4E -and $bytes[3] -eq 0x47) {
+            $mime = 'image/png'
+        }
         if (-not $mime) { $mime = 'application/octet-stream' }
         $res.ContentType     = $mime
         $res.ContentLength64 = $bytes.Length
