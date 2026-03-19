@@ -923,6 +923,7 @@ let monthBudget = parseFloat(localStorage.getItem('boodschappen_budget_month') |
 
 // ── Supermarkten ──────────────────────────────────────────────────────────────
 const SUPERMARKTEN = [
+  // 🇳🇱 Nederland
   { id: 'ah',        label: 'Albert Heijn', short: 'AH',  bg: '#00A0E2', fg: '#fff' },
   { id: 'jumbo',     label: 'Jumbo',        short: 'J',   bg: '#FFC800', fg: '#222' },
   { id: 'lidl',      label: 'Lidl',         short: 'Li',  bg: '#0050AA', fg: '#fff' },
@@ -930,6 +931,14 @@ const SUPERMARKTEN = [
   { id: 'plus',      label: 'Plus',         short: 'P+',  bg: '#E30613', fg: '#fff' },
   { id: 'dirk',      label: 'Dirk',         short: 'D',   bg: '#CC0000', fg: '#fff' },
   { id: 'hoogvliet', label: 'Hoogvliet',    short: 'HV',  bg: '#00833E', fg: '#fff' },
+  // 🇧🇪 België
+  { id: 'delhaize',  label: 'Delhaize',     short: 'DH',  bg: '#C8002D', fg: '#fff' },
+  { id: 'colruyt',   label: 'Colruyt',      short: 'Co',  bg: '#E20714', fg: '#fff' },
+  { id: 'carrefour', label: 'Carrefour',    short: 'CF',  bg: '#004A97', fg: '#fff' },
+  { id: 'okay',      label: 'OKay',         short: 'OK',  bg: '#E2001A', fg: '#fff' },
+  { id: 'proxy',     label: 'Proxy Delhaize', short: 'PD', bg: '#C8002D', fg: '#fff' },
+  { id: 'spar',      label: 'Spar',         short: 'SP',  bg: '#007A33', fg: '#fff' },
+  // Overig
   { id: 'divers',    label: 'Divers',       short: '···', bg: '#7f8c8d', fg: '#fff' },
 ];
 let selectedSM = null;
