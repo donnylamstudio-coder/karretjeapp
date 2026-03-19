@@ -540,7 +540,7 @@
     }
     #dark-toggle:active { opacity: 0.7; }
 
-    /* ── Language toggle ── */
+    /* ── Language toggle (header) ── */
     #lang-toggle {
       position: absolute; right: 72px; top: 50%; transform: translateY(-50%);
       display: flex; gap: 2px;
@@ -553,6 +553,25 @@
       transition: all 0.2s;
     }
     #lang-toggle button.active {
+      background: var(--card); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    /* ── Language toggle (onboarding) ── */
+    #ob-lang-toggle {
+      position: absolute;
+      top: calc(var(--safe-top) + 18px);
+      right: 20px;
+      display: flex; gap: 2px;
+      background: var(--card-soft); border-radius: 99px; padding: 3px;
+    }
+    #ob-lang-toggle button {
+      border: none; background: none; border-radius: 99px;
+      padding: 4px 9px; font-size: 0.68rem; font-weight: 800;
+      color: var(--muted); cursor: pointer; letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+    #ob-lang-toggle button.active {
       background: var(--card); color: var(--text);
       box-shadow: 0 1px 4px rgba(0,0,0,0.12);
     }
@@ -596,6 +615,10 @@
 
 <!-- Onboarding -->
 <div id="onboarding">
+  <div id="ob-lang-toggle">
+    <button id="ob-lang-nl" onclick="setLang('nl')">NL</button>
+    <button id="ob-lang-en" onclick="setLang('en')">EN</button>
+  </div>
   <div class="ob-avatar"><img src="Broccoli.jpg" alt="Karretje" /></div>
   <div class="ob-title" data-i18n="ob_title">Hoi! Ik ben Karretje.</div>
   <div class="ob-sub" data-i18n-html="ob_sub">Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?</div>
@@ -865,9 +888,11 @@ function applyTranslations() {
   [['ob-name','ob_name_placeholder'],['budget-input-week','budget_week_placeholder'],
    ['budget-input-month','budget_month_placeholder'],['f-divers','add_divers_placeholder']]
   .forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.placeholder = s[key]; });
-  // Lang toggle active state
+  // Lang toggle active state (header + onboarding)
   document.getElementById('lang-nl').classList.toggle('active', lang === 'nl');
   document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('ob-lang-nl').classList.toggle('active', lang === 'nl');
+  document.getElementById('ob-lang-en').classList.toggle('active', lang === 'en');
   // Re-render dynamic content
   if (userName) renderDashboard();
   renderHistory();
@@ -1332,6 +1357,8 @@ document.querySelectorAll('[data-i18n-html]').forEach(el => {
 .forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.placeholder = STRINGS[lang][key]; });
 document.getElementById('lang-nl').classList.toggle('active', lang === 'nl');
 document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+document.getElementById('ob-lang-nl').classList.toggle('active', lang === 'nl');
+document.getElementById('ob-lang-en').classList.toggle('active', lang === 'en');
 buildSMGrid();
 document.getElementById('f-date').value = today();
 document.getElementById('f-date').max   = today();
