@@ -540,6 +540,23 @@
     }
     #dark-toggle:active { opacity: 0.7; }
 
+    /* ── Language toggle ── */
+    #lang-toggle {
+      position: absolute; right: 72px; top: 50%; transform: translateY(-50%);
+      display: flex; gap: 2px;
+      background: var(--card-soft); border-radius: 99px; padding: 3px;
+    }
+    #lang-toggle button {
+      border: none; background: none; border-radius: 99px;
+      padding: 4px 9px; font-size: 0.68rem; font-weight: 800;
+      color: var(--muted); cursor: pointer; letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+    #lang-toggle button.active {
+      background: var(--card); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
     /* ── Toast ── */
     #toast {
       position: fixed; bottom: calc(var(--safe-bottom) + 90px);
@@ -580,36 +597,40 @@
 <!-- Onboarding -->
 <div id="onboarding">
   <div class="ob-avatar"><img src="Broccoli.jpg" alt="Karretje" /></div>
-  <div class="ob-title">Hoi! Ik ben Karretje.</div>
-  <div class="ob-sub">Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?</div>
+  <div class="ob-title" data-i18n="ob_title">Hoi! Ik ben Karretje.</div>
+  <div class="ob-sub" data-i18n-html="ob_sub">Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?</div>
   <input class="ob-input" id="ob-name" type="text" placeholder="Jouw naam..." maxlength="30" autocomplete="given-name" />
-  <button class="ob-btn" onclick="finishOnboarding()">Aan de slag! 🛒</button>
+  <button class="ob-btn" onclick="finishOnboarding()" data-i18n="ob_btn">Aan de slag! 🛒</button>
 </div>
 
 <!-- Welcome flash -->
 <div id="welcome-flash">
   <div class="wf-avatar"><img src="Broccoli.jpg" alt="Karretje" /></div>
   <div class="wf-text" id="wf-text">Welkom!</div>
-  <div class="wf-sub">Lekker boodschappen doen 🛍</div>
+  <div class="wf-sub" data-i18n="wf_sub">Lekker boodschappen doen 🛍</div>
 </div>
 
 <header style="position:relative">
   <h1>🛒 Karretje</h1>
+  <div id="lang-toggle">
+    <button id="lang-nl" onclick="setLang('nl')">NL</button>
+    <button id="lang-en" onclick="setLang('en')">EN</button>
+  </div>
   <button id="dark-toggle" onclick="toggleDark()" aria-label="Dark mode aan/uit">🌙</button>
 </header>
 
 <nav>
   <button class="active" onclick="showTab('dashboard', this)">
     <span class="nav-icon">🏠</span>
-    Overzicht
+    <span data-i18n="nav_overview">Overzicht</span>
   </button>
   <button onclick="showTab('add', this)">
     <span class="nav-icon">➕</span>
-    Toevoegen
+    <span data-i18n="nav_add">Toevoegen</span>
   </button>
   <button onclick="showTab('history', this)">
     <span class="nav-icon">📋</span>
-    Geschiedenis
+    <span data-i18n="nav_history">Geschiedenis</span>
   </button>
 </nav>
 
@@ -620,7 +641,7 @@
 
     <!-- Hero -->
     <div class="hero-card">
-      <div class="hero-label">Deze week uitgegeven</div>
+      <div class="hero-label" data-i18n="hero_label">Deze maand uitgegeven</div>
       <div class="hero-amount" id="hero-amount">€0,00</div>
       <div class="hero-sub" id="hero-sub">0 aankopen bijgehouden</div>
       <img src="Brocoliavatar.png" alt="" class="hero-broccoli" id="hero-broccoli" onclick="wiggleBroccoli()" />
@@ -628,19 +649,19 @@
 
     <!-- Budget -->
     <div class="card budget-card">
-      <h2>Budget</h2>
+      <h2 data-i18n="budget_title">Budget</h2>
 
       <div class="budget-section">
         <div class="budget-header">
-          <span class="budget-period-label">📅 Deze week</span>
+          <span class="budget-period-label" data-i18n="budget_week_label">📅 Deze week</span>
           <div class="budget-actions">
-            <button onclick="toggleBudgetEdit('week')" class="btn-budget-action">Wijzigen</button>
-            <button onclick="resetBudget('week')" class="btn-budget-reset">Reset</button>
+            <button onclick="toggleBudgetEdit('week')" class="btn-budget-action" data-i18n="budget_edit">Wijzigen</button>
+            <button onclick="resetBudget('week')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
           </div>
         </div>
         <div id="budget-edit-week" class="budget-edit-row" style="display:none;margin-bottom:10px">
           <input type="number" id="budget-input-week" placeholder="bijv. 100" min="0" step="1" inputmode="decimal" />
-          <button class="btn-save-budget" onclick="saveBudget('week')">Opslaan</button>
+          <button class="btn-save-budget" onclick="saveBudget('week')" data-i18n="budget_save">Opslaan</button>
         </div>
         <div id="budget-display-week"></div>
       </div>
@@ -649,15 +670,15 @@
 
       <div class="budget-section">
         <div class="budget-header">
-          <span class="budget-period-label">🗓 Deze maand</span>
+          <span class="budget-period-label" data-i18n="budget_month_label">🗓 Deze maand</span>
           <div class="budget-actions">
-            <button onclick="toggleBudgetEdit('month')" class="btn-budget-action">Wijzigen</button>
-            <button onclick="resetBudget('month')" class="btn-budget-reset">Reset</button>
+            <button onclick="toggleBudgetEdit('month')" class="btn-budget-action" data-i18n="budget_edit">Wijzigen</button>
+            <button onclick="resetBudget('month')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
           </div>
         </div>
         <div id="budget-edit-month" class="budget-edit-row" style="display:none;margin-bottom:10px">
           <input type="number" id="budget-input-month" placeholder="bijv. 400" min="0" step="1" inputmode="decimal" />
-          <button class="btn-save-budget" onclick="saveBudget('month')">Opslaan</button>
+          <button class="btn-save-budget" onclick="saveBudget('month')" data-i18n="budget_save">Opslaan</button>
         </div>
         <div id="budget-display-month"></div>
       </div>
@@ -667,31 +688,31 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="amount" id="stat-week">€0,00</div>
-        <div class="label">Deze week</div>
+        <div class="label" data-i18n="stat_week">Deze week</div>
       </div>
       <div class="stat-card">
         <div class="amount" id="stat-month">€0,00</div>
-        <div class="label">Deze maand</div>
+        <div class="label" data-i18n="stat_month">Deze maand</div>
       </div>
       <div class="stat-card wide">
         <div class="amount" id="stat-total">€0,00</div>
-        <div class="label">Totaal ooit</div>
+        <div class="label" data-i18n="stat_total">Totaal ooit</div>
       </div>
     </div>
 
     <!-- Recente aankopen -->
     <div class="card">
-      <h2>Laatste aankopen</h2>
+      <h2 data-i18n="recent_title">Laatste aankopen</h2>
       <div id="recent-list" class="tx-list"></div>
     </div>
   </div>
 
   <!-- TOEVOEGEN -->
   <div id="tab-add" class="section">
-    <div class="section-title">Nieuwe uitgave</div>
+    <div class="section-title" data-i18n="add_title">Nieuwe uitgave</div>
     <div class="card">
       <div class="form-group">
-        <label>Supermarkt</label>
+        <label data-i18n="add_store">Supermarkt</label>
         <div class="supermarkt-grid" id="sm-grid"></div>
         <div id="f-divers-wrap">
           <input type="text" id="f-divers" placeholder="Omschrijving..." autocomplete="off" />
@@ -699,26 +720,26 @@
       </div>
 
       <div class="form-group">
-        <label>Bedrag (€)</label>
+        <label data-i18n="add_amount">Bedrag (€)</label>
         <input type="number" id="f-amount" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
       </div>
 
       <div class="form-group">
-        <label>Datum</label>
+        <label data-i18n="add_date">Datum</label>
         <input type="date" id="f-date" />
       </div>
 
-      <button class="btn-primary" onclick="addExpense()">Opslaan</button>
+      <button class="btn-primary" onclick="addExpense()" data-i18n="add_save">Opslaan</button>
     </div>
   </div>
 
   <!-- GESCHIEDENIS -->
   <div id="tab-history" class="section">
-    <div class="section-title">Geschiedenis</div>
+    <div class="section-title" data-i18n="history_title">Geschiedenis</div>
     <div class="filter-row" id="period-filters">
-      <button class="chip active" onclick="setFilter('week', this)">Deze week</button>
-      <button class="chip" onclick="setFilter('month', this)">Deze maand</button>
-      <button class="chip" onclick="setFilter('all', this)">Alles</button>
+      <button class="chip active" onclick="setFilter('week', this)" data-i18n="filter_week">Deze week</button>
+      <button class="chip" onclick="setFilter('month', this)" data-i18n="filter_month">Deze maand</button>
+      <button class="chip" onclick="setFilter('all', this)" data-i18n="filter_all">Alles</button>
     </div>
     <div id="history-list" class="tx-list"></div>
   </div>
@@ -730,16 +751,127 @@
 <div id="confirm-overlay">
   <div id="confirm-box">
     <div class="cb-icon">🗑️</div>
-    <div class="cb-title">Verwijderen?</div>
-    <div class="cb-sub">Weet je zeker dat je deze aankoop wilt verwijderen?</div>
+    <div class="cb-title" data-i18n="confirm_title">Verwijderen?</div>
+    <div class="cb-sub" data-i18n="confirm_sub">Weet je zeker dat je deze aankoop wilt verwijderen?</div>
     <div class="cb-actions">
-      <button class="cb-cancel" onclick="closeConfirm()">Annuleren</button>
-      <button class="cb-confirm" onclick="confirmDelete()">Verwijderen</button>
+      <button class="cb-cancel" onclick="closeConfirm()" data-i18n="confirm_cancel">Annuleren</button>
+      <button class="cb-confirm" onclick="confirmDelete()" data-i18n="confirm_delete">Verwijderen</button>
     </div>
   </div>
 </div>
 
 <script>
+// ── Translations ──────────────────────────────────────────────────────────────
+let lang = localStorage.getItem('karretje_lang') || 'nl';
+
+const STRINGS = {
+  nl: {
+    nav_overview: 'Overzicht', nav_add: 'Toevoegen', nav_history: 'Geschiedenis',
+    hero_label: 'Deze maand uitgegeven',
+    budget_title: 'Budget',
+    budget_week_label: '📅 Deze week', budget_month_label: '🗓 Deze maand',
+    budget_edit: 'Wijzigen', budget_reset: 'Reset', budget_save: 'Opslaan',
+    budget_week_placeholder: 'bijv. 100', budget_month_placeholder: 'bijv. 400',
+    stat_week: 'Deze week', stat_month: 'Deze maand', stat_total: 'Totaal ooit',
+    recent_title: 'Laatste aankopen',
+    add_title: 'Nieuwe uitgave', add_store: 'Supermarkt', add_amount: 'Bedrag (€)',
+    add_date: 'Datum', add_save: 'Opslaan', add_divers_placeholder: 'Omschrijving...',
+    history_title: 'Geschiedenis',
+    filter_week: 'Deze week', filter_month: 'Deze maand', filter_all: 'Alles',
+    confirm_title: 'Verwijderen?',
+    confirm_sub: 'Weet je zeker dat je deze aankoop wilt verwijderen?',
+    confirm_cancel: 'Annuleren', confirm_delete: 'Verwijderen',
+    ob_title: 'Hoi! Ik ben Karretje.',
+    ob_sub: 'Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?',
+    ob_name_placeholder: 'Jouw naam...', ob_btn: 'Aan de slag! 🛒',
+    wf_sub: 'Lekker boodschappen doen 🛍',
+    greeting_morning: 'Goedemorgen', greeting_afternoon: 'Goedemiddag', greeting_evening: 'Goedenavond',
+    hero_sub_anon: (n) => `${n} aankopen bijgehouden`,
+    hero_sub_name: (g, name, n) => `${g}, ${name}! · ${n} aankopen`,
+    welcome: (name) => `Welkom, ${name}!`,
+    empty_recent: 'Nog geen uitgaven', empty_history: 'Geen uitgaven gevonden',
+    budget_no_set: 'Nog geen budget ingesteld', budget_set_btn: 'Budget instellen',
+    budget_spent: (a) => `${a} uitgegeven`,
+    budget_over: (a) => `⚠️ ${a} over budget`,
+    budget_remaining: (a) => `${a} over`,
+    budget_label: (a) => `Budget: ${a}`,
+    toast_saved: '✅ Uitgave opgeslagen!', toast_deleted: '🗑 Verwijderd',
+    toast_budget_saved: '💰 Budget opgeslagen!', toast_budget_reset: '🔄 Budget gereset',
+    toast_choose_store: 'Kies een supermarkt', toast_invalid_amount: 'Voer een geldig bedrag in',
+    toast_choose_date: 'Kies een datum', toast_invalid_budget: 'Voer een geldig budget in',
+    date_locale: 'nl-NL',
+  },
+  en: {
+    nav_overview: 'Overview', nav_add: 'Add', nav_history: 'History',
+    hero_label: 'Spent this month',
+    budget_title: 'Budget',
+    budget_week_label: '📅 This week', budget_month_label: '🗓 This month',
+    budget_edit: 'Edit', budget_reset: 'Reset', budget_save: 'Save',
+    budget_week_placeholder: 'e.g. 100', budget_month_placeholder: 'e.g. 400',
+    stat_week: 'This week', stat_month: 'This month', stat_total: 'All time',
+    recent_title: 'Recent purchases',
+    add_title: 'New expense', add_store: 'Supermarket', add_amount: 'Amount (€)',
+    add_date: 'Date', add_save: 'Save', add_divers_placeholder: 'Description...',
+    history_title: 'History',
+    filter_week: 'This week', filter_month: 'This month', filter_all: 'All',
+    confirm_title: 'Delete?',
+    confirm_sub: 'Are you sure you want to delete this purchase?',
+    confirm_cancel: 'Cancel', confirm_delete: 'Delete',
+    ob_title: "Hi! I'm Karretje.",
+    ob_sub: "I help you keep track<br>of your grocery expenses.<br><br>What's your name?",
+    ob_name_placeholder: 'Your name...', ob_btn: "Let's go! 🛒",
+    wf_sub: 'Happy shopping! 🛍',
+    greeting_morning: 'Good morning', greeting_afternoon: 'Good afternoon', greeting_evening: 'Good evening',
+    hero_sub_anon: (n) => `${n} purchases tracked`,
+    hero_sub_name: (g, name, n) => `${g}, ${name}! · ${n} purchases`,
+    welcome: (name) => `Welcome, ${name}!`,
+    empty_recent: 'No expenses yet', empty_history: 'No expenses found',
+    budget_no_set: 'No budget set', budget_set_btn: 'Set budget',
+    budget_spent: (a) => `${a} spent`,
+    budget_over: (a) => `⚠️ ${a} over budget`,
+    budget_remaining: (a) => `${a} remaining`,
+    budget_label: (a) => `Budget: ${a}`,
+    toast_saved: '✅ Expense saved!', toast_deleted: '🗑 Deleted',
+    toast_budget_saved: '💰 Budget saved!', toast_budget_reset: '🔄 Budget reset',
+    toast_choose_store: 'Choose a supermarket', toast_invalid_amount: 'Enter a valid amount',
+    toast_choose_date: 'Choose a date', toast_invalid_budget: 'Enter a valid budget',
+    date_locale: 'en-GB',
+  }
+};
+
+function t(key, ...args) {
+  const val = STRINGS[lang][key];
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+function applyTranslations() {
+  const s = STRINGS[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = s[el.dataset.i18n];
+    if (v !== undefined) el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const v = s[el.dataset.i18nHtml];
+    if (v !== undefined) el.innerHTML = v;
+  });
+  // Placeholder attributes
+  [['ob-name','ob_name_placeholder'],['budget-input-week','budget_week_placeholder'],
+   ['budget-input-month','budget_month_placeholder'],['f-divers','add_divers_placeholder']]
+  .forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.placeholder = s[key]; });
+  // Lang toggle active state
+  document.getElementById('lang-nl').classList.toggle('active', lang === 'nl');
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  // Re-render dynamic content
+  if (userName) renderDashboard();
+  renderHistory();
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('karretje_lang', l);
+  applyTranslations();
+}
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 let userName = localStorage.getItem('karretje_name') || '';
 let expenses = JSON.parse(localStorage.getItem('boodschappen_v2') || '[]');
@@ -765,7 +897,7 @@ function save() { localStorage.setItem('boodschappen_v2', JSON.stringify(expense
 function fmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
 function fmtDate(iso) {
   const d = new Date(iso);
-  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString(t('date_locale'), { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
@@ -813,23 +945,23 @@ function renderDashboard() {
   const thisWeek  = filteredExpenses('week').reduce((s, e) => s + e.amount, 0);
   const thisMonth = filteredExpenses('month').reduce((s, e) => s + e.amount, 0);
 
-  document.getElementById('hero-amount').textContent = fmt(thisWeek);
+  document.getElementById('hero-amount').textContent = fmt(thisMonth);
   document.getElementById('hero-sub').textContent    = userName
-    ? `${greeting()}, ${userName}! · ${expenses.length} aankopen`
-    : `${expenses.length} aankopen bijgehouden`;
+    ? t('hero_sub_name', greeting(), userName, expenses.length)
+    : t('hero_sub_anon', expenses.length);
   document.getElementById('stat-week').textContent   = fmt(thisWeek);
   document.getElementById('stat-month').textContent  = fmt(thisMonth);
   document.getElementById('stat-total').textContent  = fmt(allTime);
 
   renderBudget('week',  thisWeek);
   renderBudget('month', thisMonth);
-  updateBroccoliHealth(thisWeek);
+  updateBroccoliHealth(thisMonth);
   removeBroccoliBackground();
 
   const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
   const recentEl = document.getElementById('recent-list');
   recentEl.innerHTML = recent.length === 0
-    ? '<div class="empty"><div class="icon">🛒</div><p>Nog geen uitgaven</p></div>'
+    ? `<div class="empty"><div class="icon">🛒</div><p>${t('empty_recent')}</p></div>`
     : recent.map(e => txHTML(e, false)).join('');
 }
 
@@ -989,17 +1121,17 @@ function toggleBudgetEdit(period) {
 
 function saveBudget(period) {
   const val = parseFloat(document.getElementById('budget-input-' + period).value);
-  if (!val || val <= 0) { showToast('Voer een geldig budget in'); return; }
+  if (!val || val <= 0) { showToast(t('toast_invalid_budget')); return; }
   setBudget(period, val);
   document.getElementById('budget-edit-' + period).style.display = 'none';
   renderDashboard();
-  showToast('💰 Budget opgeslagen!');
+  showToast(t('toast_budget_saved'));
 }
 
 function resetBudget(period) {
   setBudget(period, 0);
   renderDashboard();
-  showToast('🔄 Budget gereset');
+  showToast(t('toast_budget_reset'));
 }
 
 function renderBudget(period, spent) {
@@ -1008,8 +1140,8 @@ function renderBudget(period, spent) {
   if (!budget) {
     el.innerHTML = `
       <div class="budget-no-set">
-        Nog geen budget ingesteld
-        <br><button class="btn-set-budget" onclick="toggleBudgetEdit('${period}')">Budget instellen</button>
+        ${t('budget_no_set')}
+        <br><button class="btn-set-budget" onclick="toggleBudgetEdit('${period}')">${t('budget_set_btn')}</button>
       </div>`;
     return;
   }
@@ -1022,23 +1154,23 @@ function renderBudget(period, spent) {
       <div class="budget-bar-fill" style="width:${pct.toFixed(1)}%;background:${barColor}"></div>
     </div>
     <div class="budget-labels">
-      <span class="spent">${fmt(spent)} uitgegeven</span>
-      <span style="color:${over?'#e05252':'inherit'}">${over ? '⚠️ '+fmt(spent-budget)+' over budget' : fmt(rest)+' over'}</span>
+      <span class="spent">${t('budget_spent', fmt(spent))}</span>
+      <span style="color:${over?'#e05252':'inherit'}">${over ? t('budget_over', fmt(spent-budget)) : t('budget_remaining', fmt(rest))}</span>
     </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;text-align:right">Budget: ${fmt(budget)}</div>`;
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;text-align:right">${t('budget_label', fmt(budget))}</div>`;
 }
 
 // ── Toevoegen ─────────────────────────────────────────────────────────────────
 function addExpense() {
-  if (!selectedSM) { showToast('Kies een supermarkt'); return; }
+  if (!selectedSM) { showToast(t('toast_choose_store')); return; }
   const sm     = SUPERMARKTEN.find(s => s.id === selectedSM);
   const name   = selectedSM === 'divers'
     ? (document.getElementById('f-divers').value.trim() || 'Divers')
     : sm.label;
   const amount = parseFloat(document.getElementById('f-amount').value);
   const date   = document.getElementById('f-date').value;
-  if (!amount || amount <= 0) { showToast('Voer een geldig bedrag in'); return; }
-  if (!date)                  { showToast('Kies een datum'); return; }
+  if (!amount || amount <= 0) { showToast(t('toast_invalid_amount')); return; }
+  if (!date)                  { showToast(t('toast_choose_date')); return; }
   expenses.push({ id: Date.now().toString(), name, amount, date, smId: selectedSM });
   save();
   selectedSM = null;
@@ -1047,7 +1179,7 @@ function addExpense() {
   document.getElementById('f-divers').value = '';
   document.getElementById('f-amount').value = '';
   document.getElementById('f-date').value = today();
-  showToast('✅ Uitgave opgeslagen!');
+  showToast(t('toast_saved'));
   showTabDirect('dashboard');
 }
 
@@ -1070,7 +1202,7 @@ function confirmDelete() {
   save();
   renderHistory();
   renderDashboard();
-  showToast('🗑 Verwijderd');
+  showToast(t('toast_deleted'));
   closeConfirm();
 }
 
@@ -1086,7 +1218,7 @@ function renderHistory() {
   const list = filteredExpenses(currentFilter);
   const el = document.getElementById('history-list');
   el.innerHTML = list.length === 0
-    ? '<div class="empty"><div class="icon">📭</div><p>Geen uitgaven gevonden</p></div>'
+    ? `<div class="empty"><div class="icon">📭</div><p>${t('empty_history')}</p></div>`
     : list.map(e => txHTML(e, true)).join('');
 }
 
@@ -1127,7 +1259,7 @@ function finishOnboarding() {
 
   // Show welcome flash
   const flash = document.getElementById('welcome-flash');
-  document.getElementById('wf-text').textContent = `Welkom, ${name}!`;
+  document.getElementById('wf-text').textContent = t('welcome', name);
   flash.classList.add('show');
 
   setTimeout(() => {
@@ -1140,13 +1272,25 @@ function finishOnboarding() {
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'Goedemorgen';
-  if (h < 18) return 'Goedemiddag';
-  return 'Goedenavond';
+  if (h < 12) return t('greeting_morning');
+  if (h < 18) return t('greeting_afternoon');
+  return t('greeting_evening');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 initTheme();
+// Apply saved language (update static elements only, no re-render yet)
+document.querySelectorAll('[data-i18n]').forEach(el => {
+  const v = STRINGS[lang][el.dataset.i18n]; if (v !== undefined) el.textContent = v;
+});
+document.querySelectorAll('[data-i18n-html]').forEach(el => {
+  const v = STRINGS[lang][el.dataset.i18nHtml]; if (v !== undefined) el.innerHTML = v;
+});
+[['ob-name','ob_name_placeholder'],['budget-input-week','budget_week_placeholder'],
+ ['budget-input-month','budget_month_placeholder'],['f-divers','add_divers_placeholder']]
+.forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.placeholder = STRINGS[lang][key]; });
+document.getElementById('lang-nl').classList.toggle('active', lang === 'nl');
+document.getElementById('lang-en').classList.toggle('active', lang === 'en');
 buildSMGrid();
 document.getElementById('f-date').value = today();
 
