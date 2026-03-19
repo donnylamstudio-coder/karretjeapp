@@ -656,7 +656,7 @@
           <span class="budget-period-label" data-i18n="budget_week_label">📅 Deze week</span>
           <div class="budget-actions">
             <button onclick="toggleBudgetEdit('week')" class="btn-budget-action" data-i18n="budget_edit">Wijzigen</button>
-            <button onclick="resetBudget('week')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
+            <button onclick="confirmBudgetReset('week')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
           </div>
         </div>
         <div id="budget-edit-week" class="budget-edit-row" style="display:none;margin-bottom:10px">
@@ -673,7 +673,7 @@
           <span class="budget-period-label" data-i18n="budget_month_label">🗓 Deze maand</span>
           <div class="budget-actions">
             <button onclick="toggleBudgetEdit('month')" class="btn-budget-action" data-i18n="budget_edit">Wijzigen</button>
-            <button onclick="resetBudget('month')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
+            <button onclick="confirmBudgetReset('month')" class="btn-budget-reset" data-i18n="budget_reset">Reset</button>
           </div>
         </div>
         <div id="budget-edit-month" class="budget-edit-row" style="display:none;margin-bottom:10px">
@@ -715,13 +715,14 @@
         <label data-i18n="add_store">Supermarkt</label>
         <div class="supermarkt-grid" id="sm-grid"></div>
         <div id="f-divers-wrap">
+          <label data-i18n="add_divers_label" style="margin-top:12px">Omschrijving</label>
           <input type="text" id="f-divers" placeholder="Omschrijving..." autocomplete="off" />
         </div>
       </div>
 
       <div class="form-group">
         <label data-i18n="add_amount">Bedrag (€)</label>
-        <input type="number" id="f-amount" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+        <input type="text" id="f-amount" placeholder="0,00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" autocomplete="off" />
       </div>
 
       <div class="form-group">
@@ -775,12 +776,15 @@ const STRINGS = {
     stat_week: 'Deze week', stat_month: 'Deze maand', stat_total: 'Totaal ooit',
     recent_title: 'Laatste aankopen',
     add_title: 'Nieuwe uitgave', add_store: 'Supermarkt', add_amount: 'Bedrag (€)',
-    add_date: 'Datum', add_save: 'Opslaan', add_divers_placeholder: 'Omschrijving...',
+    add_date: 'Datum', add_save: 'Opslaan', add_divers_label: 'Omschrijving', add_divers_placeholder: 'Omschrijving...',
     history_title: 'Geschiedenis',
     filter_week: 'Deze week', filter_month: 'Deze maand', filter_all: 'Alles',
     confirm_title: 'Verwijderen?',
     confirm_sub: 'Weet je zeker dat je deze aankoop wilt verwijderen?',
     confirm_cancel: 'Annuleren', confirm_delete: 'Verwijderen',
+    confirm_budget_title: 'Budget resetten?',
+    confirm_budget_sub: 'Weet je zeker dat je dit budget wilt verwijderen?',
+    confirm_budget_confirm: 'Resetten',
     ob_title: 'Hoi! Ik ben Karretje.',
     ob_sub: 'Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?',
     ob_name_placeholder: 'Jouw naam...', ob_btn: 'Aan de slag! 🛒',
@@ -811,12 +815,15 @@ const STRINGS = {
     stat_week: 'This week', stat_month: 'This month', stat_total: 'All time',
     recent_title: 'Recent purchases',
     add_title: 'New expense', add_store: 'Supermarket', add_amount: 'Amount (€)',
-    add_date: 'Date', add_save: 'Save', add_divers_placeholder: 'Description...',
+    add_date: 'Date', add_save: 'Save', add_divers_label: 'Description', add_divers_placeholder: 'Description...',
     history_title: 'History',
     filter_week: 'This week', filter_month: 'This month', filter_all: 'All',
     confirm_title: 'Delete?',
     confirm_sub: 'Are you sure you want to delete this purchase?',
     confirm_cancel: 'Cancel', confirm_delete: 'Delete',
+    confirm_budget_title: 'Reset budget?',
+    confirm_budget_sub: 'Are you sure you want to remove this budget?',
+    confirm_budget_confirm: 'Reset',
     ob_title: "Hi! I'm Karretje.",
     ob_sub: "I help you keep track<br>of your grocery expenses.<br><br>What's your name?",
     ob_name_placeholder: 'Your name...', ob_btn: "Let's go! 🛒",
@@ -946,16 +953,17 @@ function renderDashboard() {
   const thisMonth = filteredExpenses('month').reduce((s, e) => s + e.amount, 0);
 
   document.getElementById('hero-amount').textContent = fmt(thisMonth);
+  const monthCount = filteredExpenses('month').length;
   document.getElementById('hero-sub').textContent    = userName
-    ? t('hero_sub_name', greeting(), userName, expenses.length)
-    : t('hero_sub_anon', expenses.length);
+    ? t('hero_sub_name', greeting(), userName, monthCount)
+    : t('hero_sub_anon', monthCount);
   document.getElementById('stat-week').textContent   = fmt(thisWeek);
   document.getElementById('stat-month').textContent  = fmt(thisMonth);
   document.getElementById('stat-total').textContent  = fmt(allTime);
 
   renderBudget('week',  thisWeek);
   renderBudget('month', thisMonth);
-  updateBroccoliHealth(thisMonth);
+  updateBroccoliHealth(thisWeek, thisMonth);
   removeBroccoliBackground();
 
   const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
@@ -966,10 +974,13 @@ function renderDashboard() {
 }
 
 // ── Broccoli background removal ───────────────────────────────────────────────
+let broccoliProcessed = false;
 function removeBroccoliBackground() {
+  if (broccoliProcessed) return;
   const img = document.getElementById('hero-broccoli');
   if (!img) return;
   const process = () => {
+    if (broccoliProcessed) return;
     const w = img.naturalWidth, h = img.naturalHeight;
     if (!w || !h) return;
     const canvas = document.createElement('canvas');
@@ -1023,6 +1034,7 @@ function removeBroccoliBackground() {
 
     ctx.putImageData(imgData, 0, 0);
     img.src = canvas.toDataURL('image/png');
+    broccoliProcessed = true;
   };
   if (img.complete && img.naturalWidth) process();
   else img.onload = process;
@@ -1039,9 +1051,14 @@ function wiggleBroccoli() {
 }
 
 // ── Broccoli gezondheid ───────────────────────────────────────────────────────
-function updateBroccoliHealth(spent) {
-  const budget = weekBudget || monthBudget;
-  const ratio = (budget && budget > 0) ? Math.min(spent / budget, 1.2) : 0;
+function updateBroccoliHealth(thisWeek, thisMonth) {
+  // Use month budget + month spending if available, else week budget + week spending
+  let ratio = 0;
+  if (monthBudget > 0) {
+    ratio = Math.min(thisMonth / monthBudget, 1.2);
+  } else if (weekBudget > 0) {
+    ratio = Math.min(thisWeek / weekBudget, 1.2);
+  }
 
   let f = '';
   if (ratio >= 0.5 && ratio < 0.75) {
@@ -1167,7 +1184,7 @@ function addExpense() {
   const name   = selectedSM === 'divers'
     ? (document.getElementById('f-divers').value.trim() || 'Divers')
     : sm.label;
-  const amount = parseFloat(document.getElementById('f-amount').value);
+  const amount = parseFloat(document.getElementById('f-amount').value.replace(',', '.'));
   const date   = document.getElementById('f-date').value;
   if (!amount || amount <= 0) { showToast(t('toast_invalid_amount')); return; }
   if (!date)                  { showToast(t('toast_choose_date')); return; }
@@ -1183,20 +1200,44 @@ function addExpense() {
   showTabDirect('dashboard');
 }
 
-// ── Verwijderen ───────────────────────────────────────────────────────────────
+// ── Verwijderen & Bevestigen ───────────────────────────────────────────────────
 let pendingDeleteId = null;
+let pendingResetPeriod = null;
+
+function showConfirmBox(icon, titleKey, subKey, confirmKey) {
+  document.querySelector('#confirm-box .cb-icon').textContent  = icon;
+  document.querySelector('#confirm-box .cb-title').textContent = t(titleKey);
+  document.querySelector('#confirm-box .cb-sub').textContent   = t(subKey);
+  document.querySelector('#confirm-box .cb-confirm').textContent = t(confirmKey);
+  document.getElementById('confirm-overlay').classList.add('show');
+}
 
 function deleteExpense(id) {
   pendingDeleteId = id;
-  document.getElementById('confirm-overlay').classList.add('show');
+  pendingResetPeriod = null;
+  showConfirmBox('🗑️', 'confirm_title', 'confirm_sub', 'confirm_delete');
+}
+
+function confirmBudgetReset(period) {
+  pendingResetPeriod = period;
+  pendingDeleteId = null;
+  showConfirmBox('🔄', 'confirm_budget_title', 'confirm_budget_sub', 'confirm_budget_confirm');
 }
 
 function closeConfirm() {
   pendingDeleteId = null;
+  pendingResetPeriod = null;
   document.getElementById('confirm-overlay').classList.remove('show');
 }
 
 function confirmDelete() {
+  if (pendingResetPeriod) {
+    setBudget(pendingResetPeriod, 0);
+    renderDashboard();
+    showToast(t('toast_budget_reset'));
+    closeConfirm();
+    return;
+  }
   if (!pendingDeleteId) return;
   expenses = expenses.filter(e => e.id !== pendingDeleteId);
   save();
@@ -1293,6 +1334,7 @@ document.getElementById('lang-nl').classList.toggle('active', lang === 'nl');
 document.getElementById('lang-en').classList.toggle('active', lang === 'en');
 buildSMGrid();
 document.getElementById('f-date').value = today();
+document.getElementById('f-date').max   = today();
 
 // Enter name input on onboarding with Enter key
 document.getElementById('ob-name').addEventListener('keydown', e => {
