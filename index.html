@@ -1126,9 +1126,8 @@ function updateBroccoliHealth(thisWeek, thisMonth) {
     // Lichtjes donkerder + minder verzadigd naarmate budget nadert
     f = `saturate(${1 - t * 0.3}) brightness(${1 - t * 0.15})`;
   } else if (ratio >= 1.0) {
-    // Over budget → grijs + donker (droevige look, maar niet bruin)
-    const t = Math.min((ratio - 1.0) / 0.2, 1);
-    f = `saturate(${0.7 - t * 0.6}) brightness(${0.85 - t * 0.15}) grayscale(${t * 0.5})`;
+    // Over budget → iets donkerder maar blijft groen
+    f = `brightness(0.8)`;
   }
   el.style.filter = f || 'none';
 }
