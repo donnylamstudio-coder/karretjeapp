@@ -264,15 +264,18 @@
       overflow: hidden;
       box-shadow: 0 8px 30px rgba(232,133,90,0.38);
     }
-    .hero-card::after {
-      content: '🛒';
+    .hero-broccoli {
       position: absolute;
-      right: 18px;
-      bottom: 6px;
-      font-size: 5.5rem;
-      opacity: 0.18;
-      transform: rotate(-12deg);
+      right: 12px;
+      bottom: 10px;
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 18px;
       pointer-events: none;
+      opacity: 0.92;
+      transform: rotate(-6deg);
+      transition: filter 0.8s ease;
     }
     .hero-card .hero-label {
       font-size: 0.8rem;
@@ -608,6 +611,7 @@
       <div class="hero-label">Deze week uitgegeven</div>
       <div class="hero-amount" id="hero-amount">€0,00</div>
       <div class="hero-sub" id="hero-sub">0 aankopen bijgehouden</div>
+      <img src="Broccoli.jpg" alt="" class="hero-broccoli" id="hero-broccoli" />
     </div>
 
     <!-- Budget -->
@@ -807,12 +811,42 @@ function renderDashboard() {
 
   renderBudget('week',  thisWeek);
   renderBudget('month', thisMonth);
+  updateBroccoliHealth(thisWeek);
 
   const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
   const recentEl = document.getElementById('recent-list');
   recentEl.innerHTML = recent.length === 0
     ? '<div class="empty"><div class="icon">🛒</div><p>Nog geen uitgaven</p></div>'
     : recent.map(e => txHTML(e, false)).join('');
+}
+
+// ── Broccoli gezondheid ───────────────────────────────────────────────────────
+function updateBroccoliHealth(spent) {
+  const img = document.getElementById('hero-broccoli');
+  if (!img) return;
+  const budget = weekBudget || monthBudget;
+  if (!budget || budget <= 0) { img.style.filter = 'none'; return; }
+  const ratio = Math.min(spent / budget, 1.2); // cap at 120%
+
+  // Fresh → geel → bruin → verrot
+  let f = '';
+  if (ratio < 0.5) {
+    // 0–50%: gezond
+    f = 'none';
+  } else if (ratio < 0.75) {
+    // 50–75%: licht geel worden
+    const t = (ratio - 0.5) / 0.25;
+    f = `saturate(${1 - t * 0.3}) hue-rotate(${t * 15}deg) brightness(${1 - t * 0.05})`;
+  } else if (ratio < 1.0) {
+    // 75–100%: geel/bruin worden
+    const t = (ratio - 0.75) / 0.25;
+    f = `saturate(${0.7 - t * 0.4}) hue-rotate(${15 + t * 35}deg) brightness(${0.95 - t * 0.15}) sepia(${t * 0.4})`;
+  } else {
+    // 100%+: verrot
+    const t = Math.min((ratio - 1.0) / 0.2, 1);
+    f = `saturate(${0.3 - t * 0.2}) hue-rotate(50deg) brightness(${0.8 - t * 0.15}) sepia(${0.4 + t * 0.4}) grayscale(${t * 0.3})`;
+  }
+  img.style.filter = f;
 }
 
 // ── Transactie HTML ───────────────────────────────────────────────────────────
