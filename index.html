@@ -266,25 +266,25 @@
     }
     .hero-broccoli {
       position: absolute;
-      right: 8px;
-      top: 50%;
+      right: -10px;
+      bottom: -10px;
       width: 200px;
       height: 200px;
       object-fit: contain;
       cursor: pointer;
-      transform: translateY(-50%) rotate(-6deg);
+      transform: rotate(-6deg);
       transition: filter 0.8s ease;
-      transform-origin: center center;
+      transform-origin: bottom center;
     }
     @keyframes broccoliWiggle {
-      0%   { transform: translateY(-50%) rotate(-6deg) scale(1); }
-      10%  { transform: translateY(-50%) rotate(-18deg) scale(1.15); }
-      25%  { transform: translateY(-50%) rotate(14deg) scale(1.1); }
-      40%  { transform: translateY(-50%) rotate(-12deg) scale(1.12); }
-      55%  { transform: translateY(-50%) rotate(10deg) scale(1.08); }
-      70%  { transform: translateY(-50%) rotate(-8deg) scale(1.04); }
-      85%  { transform: translateY(-50%) rotate(4deg) scale(1.01); }
-      100% { transform: translateY(-50%) rotate(-6deg) scale(1); }
+      0%   { transform: rotate(-6deg) scale(1); }
+      10%  { transform: rotate(-18deg) scale(1.15); }
+      25%  { transform: rotate(14deg) scale(1.1); }
+      40%  { transform: rotate(-12deg) scale(1.12); }
+      55%  { transform: rotate(10deg) scale(1.08); }
+      70%  { transform: rotate(-8deg) scale(1.04); }
+      85%  { transform: rotate(4deg) scale(1.01); }
+      100% { transform: rotate(-6deg) scale(1); }
     }
     .hero-broccoli.wiggle {
       animation: broccoliWiggle 0.7s ease;
