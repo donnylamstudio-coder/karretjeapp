@@ -4,10 +4,17 @@
   "short_name": "Karretje",
   "description": "Bijhouden van boodschappen uitgaven",
   "start_url": "./index.html",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#f0f4f0",
   "theme_color": "#2ecc71",
   "orientation": "portrait",
+  "lang": "nl",
+  "dir": "ltr",
+  "categories": ["finance", "utilities", "lifestyle"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon-192.png",
