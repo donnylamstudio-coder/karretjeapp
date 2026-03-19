@@ -268,12 +268,26 @@
       position: absolute;
       right: 8px;
       bottom: 6px;
-      width: 110px;
-      height: 110px;
+      width: 143px;
+      height: 143px;
       object-fit: contain;
-      pointer-events: none;
+      cursor: pointer;
       transform: rotate(-6deg);
       transition: filter 0.8s ease;
+      transform-origin: bottom center;
+    }
+    @keyframes broccoliWiggle {
+      0%   { transform: rotate(-6deg) scale(1); }
+      10%  { transform: rotate(-18deg) scale(1.15); }
+      25%  { transform: rotate(14deg) scale(1.1); }
+      40%  { transform: rotate(-12deg) scale(1.12); }
+      55%  { transform: rotate(10deg) scale(1.08); }
+      70%  { transform: rotate(-8deg) scale(1.04); }
+      85%  { transform: rotate(4deg) scale(1.01); }
+      100% { transform: rotate(-6deg) scale(1); }
+    }
+    .hero-broccoli.wiggle {
+      animation: broccoliWiggle 0.7s ease;
     }
     .hero-card .hero-label {
       font-size: 0.8rem;
@@ -609,7 +623,7 @@
       <div class="hero-label">Deze week uitgegeven</div>
       <div class="hero-amount" id="hero-amount">€0,00</div>
       <div class="hero-sub" id="hero-sub">0 aankopen bijgehouden</div>
-      <canvas class="hero-broccoli" id="hero-broccoli"></canvas>
+      <canvas class="hero-broccoli" id="hero-broccoli" onclick="wiggleBroccoli()"></canvas>
     </div>
 
     <!-- Budget -->
@@ -843,6 +857,16 @@ function removeBgAndDraw(canvas, filter) {
     if (filter) canvas.style.filter = filter;
   };
   img.src = 'Broccoli.jpg';
+}
+
+// ── Broccoli wiggle ───────────────────────────────────────────────────────────
+function wiggleBroccoli() {
+  const c = document.getElementById('hero-broccoli');
+  if (!c) return;
+  c.classList.remove('wiggle');
+  void c.offsetWidth; // reflow to restart animation
+  c.classList.add('wiggle');
+  c.addEventListener('animationend', () => c.classList.remove('wiggle'), { once: true });
 }
 
 // ── Broccoli gezondheid ───────────────────────────────────────────────────────
