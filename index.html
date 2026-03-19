@@ -267,25 +267,24 @@
     .hero-broccoli {
       position: absolute;
       right: 8px;
-      bottom: 6px;
-      width: 143px;
-      height: 143px;
+      top: 50%;
+      width: 200px;
+      height: 200px;
       object-fit: contain;
       cursor: pointer;
-      transform: rotate(-6deg);
+      transform: translateY(-50%) rotate(-6deg);
       transition: filter 0.8s ease;
-      transform-origin: bottom center;
-      mix-blend-mode: multiply;
+      transform-origin: center center;
     }
     @keyframes broccoliWiggle {
-      0%   { transform: rotate(-6deg) scale(1); }
-      10%  { transform: rotate(-18deg) scale(1.15); }
-      25%  { transform: rotate(14deg) scale(1.1); }
-      40%  { transform: rotate(-12deg) scale(1.12); }
-      55%  { transform: rotate(10deg) scale(1.08); }
-      70%  { transform: rotate(-8deg) scale(1.04); }
-      85%  { transform: rotate(4deg) scale(1.01); }
-      100% { transform: rotate(-6deg) scale(1); }
+      0%   { transform: translateY(-50%) rotate(-6deg) scale(1); }
+      10%  { transform: translateY(-50%) rotate(-18deg) scale(1.15); }
+      25%  { transform: translateY(-50%) rotate(14deg) scale(1.1); }
+      40%  { transform: translateY(-50%) rotate(-12deg) scale(1.12); }
+      55%  { transform: translateY(-50%) rotate(10deg) scale(1.08); }
+      70%  { transform: translateY(-50%) rotate(-8deg) scale(1.04); }
+      85%  { transform: translateY(-50%) rotate(4deg) scale(1.01); }
+      100% { transform: translateY(-50%) rotate(-6deg) scale(1); }
     }
     .hero-broccoli.wiggle {
       animation: broccoliWiggle 0.7s ease;
@@ -825,12 +824,76 @@ function renderDashboard() {
   renderBudget('week',  thisWeek);
   renderBudget('month', thisMonth);
   updateBroccoliHealth(thisWeek);
+  removeBroccoliBackground();
 
   const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
   const recentEl = document.getElementById('recent-list');
   recentEl.innerHTML = recent.length === 0
     ? '<div class="empty"><div class="icon">🛒</div><p>Nog geen uitgaven</p></div>'
     : recent.map(e => txHTML(e, false)).join('');
+}
+
+// ── Broccoli background removal ───────────────────────────────────────────────
+function removeBroccoliBackground() {
+  const img = document.getElementById('hero-broccoli');
+  if (!img) return;
+  const process = () => {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if (!w || !h) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+
+    function isBg(x, y) {
+      const i = (y * w + x) * 4;
+      if (d[i+3] === 0) return true;
+      const r = d[i], g = d[i+1], b = d[i+2];
+      const brightness = (r + g + b) / 3;
+      const sat = (Math.max(r,g,b) - Math.min(r,g,b)) / (Math.max(r,g,b) || 1);
+      return brightness > 210 && sat < 0.2;
+    }
+
+    const visited = new Uint8Array(w * h);
+    const queue = [];
+    const seed = (x, y) => {
+      if (x < 0 || x >= w || y < 0 || y >= h) return;
+      const pos = y * w + x;
+      if (!visited[pos] && isBg(x, y)) { visited[pos] = 1; queue.push(pos); }
+    };
+    for (let x = 0; x < w; x++) { seed(x, 0); seed(x, h-1); }
+    for (let y = 0; y < h; y++) { seed(0, y); seed(w-1, y); }
+    while (queue.length) {
+      const pos = queue.pop();
+      const x = pos % w, y = (pos / w) | 0;
+      d[pos*4+3] = 0;
+      seed(x-1, y); seed(x+1, y); seed(x, y-1); seed(x, y+1);
+    }
+
+    // Soften jagged edges: semi-transparent border pixels
+    for (let y = 1; y < h-1; y++) {
+      for (let x = 1; x < w-1; x++) {
+        const pos = y * w + x;
+        if (d[pos*4+3] === 0) continue;
+        const hasTransNeighbor =
+          d[((y-1)*w+x)*4+3] === 0 || d[((y+1)*w+x)*4+3] === 0 ||
+          d[(y*w+x-1)*4+3] === 0   || d[(y*w+x+1)*4+3] === 0;
+        if (hasTransNeighbor) {
+          const r = d[pos*4], g = d[pos*4+1], b = d[pos*4+2];
+          const brightness = (r+g+b)/3;
+          const sat = (Math.max(r,g,b)-Math.min(r,g,b))/(Math.max(r,g,b)||1);
+          if (brightness > 180 && sat < 0.3) d[pos*4+3] = Math.round(d[pos*4+3] * 0.4);
+        }
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    img.src = canvas.toDataURL('image/png');
+  };
+  if (img.complete && img.naturalWidth) process();
+  else img.onload = process;
 }
 
 // ── Broccoli wiggle ───────────────────────────────────────────────────────────
