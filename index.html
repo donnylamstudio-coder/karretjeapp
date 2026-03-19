@@ -266,14 +266,12 @@
     }
     .hero-broccoli {
       position: absolute;
-      right: 12px;
-      bottom: 10px;
-      width: 90px;
-      height: 90px;
-      object-fit: cover;
-      border-radius: 18px;
+      right: 8px;
+      bottom: 6px;
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
       pointer-events: none;
-      opacity: 0.92;
       transform: rotate(-6deg);
       transition: filter 0.8s ease;
     }
@@ -611,7 +609,7 @@
       <div class="hero-label">Deze week uitgegeven</div>
       <div class="hero-amount" id="hero-amount">€0,00</div>
       <div class="hero-sub" id="hero-sub">0 aankopen bijgehouden</div>
-      <img src="Broccoli.jpg" alt="" class="hero-broccoli" id="hero-broccoli" />
+      <canvas class="hero-broccoli" id="hero-broccoli"></canvas>
     </div>
 
     <!-- Budget -->
@@ -820,33 +818,54 @@ function renderDashboard() {
     : recent.map(e => txHTML(e, false)).join('');
 }
 
+// ── Broccoli achtergrond verwijderen ─────────────────────────────────────────
+function removeBgAndDraw(canvas, filter) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    const size = 220;
+    canvas.width  = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    const data = ctx.getImageData(0, 0, size, size);
+    const d = data.data;
+    // Sample background color from top-left corner
+    const bgR = d[0], bgG = d[1], bgB = d[2];
+    const tol = 42; // tolerance
+    for (let i = 0; i < d.length; i += 4) {
+      const dr = Math.abs(d[i]   - bgR);
+      const dg = Math.abs(d[i+1] - bgG);
+      const db = Math.abs(d[i+2] - bgB);
+      if (dr < tol && dg < tol && db < tol) d[i+3] = 0; // transparent
+    }
+    ctx.putImageData(data, 0, 0);
+    if (filter) canvas.style.filter = filter;
+  };
+  img.src = 'Broccoli.jpg';
+}
+
 // ── Broccoli gezondheid ───────────────────────────────────────────────────────
 function updateBroccoliHealth(spent) {
-  const img = document.getElementById('hero-broccoli');
-  if (!img) return;
+  const canvas = document.getElementById('hero-broccoli');
+  if (!canvas) return;
   const budget = weekBudget || monthBudget;
-  if (!budget || budget <= 0) { img.style.filter = 'none'; return; }
-  const ratio = Math.min(spent / budget, 1.2); // cap at 120%
+  const ratio = (budget && budget > 0) ? Math.min(spent / budget, 1.2) : 0;
 
-  // Fresh → geel → bruin → verrot
   let f = '';
   if (ratio < 0.5) {
-    // 0–50%: gezond
     f = 'none';
   } else if (ratio < 0.75) {
-    // 50–75%: licht geel worden
     const t = (ratio - 0.5) / 0.25;
     f = `saturate(${1 - t * 0.3}) hue-rotate(${t * 15}deg) brightness(${1 - t * 0.05})`;
   } else if (ratio < 1.0) {
-    // 75–100%: geel/bruin worden
     const t = (ratio - 0.75) / 0.25;
     f = `saturate(${0.7 - t * 0.4}) hue-rotate(${15 + t * 35}deg) brightness(${0.95 - t * 0.15}) sepia(${t * 0.4})`;
   } else {
-    // 100%+: verrot
     const t = Math.min((ratio - 1.0) / 0.2, 1);
     f = `saturate(${0.3 - t * 0.2}) hue-rotate(50deg) brightness(${0.8 - t * 0.15}) sepia(${0.4 + t * 0.4}) grayscale(${t * 0.3})`;
   }
-  img.style.filter = f;
+  removeBgAndDraw(canvas, f === 'none' ? '' : f);
 }
 
 // ── Transactie HTML ───────────────────────────────────────────────────────────
