@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Karretje" />
+  <meta name="theme-color" content="#faf6f1" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.svg" />
+  <title>Karretje</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:      #E8855A;
+      --orange-dark: #c96e45;
+      --orange-light:#fdeee6;
+      --orange-grad: linear-gradient(135deg, #c96e45 0%, #E8855A 100%);
+      --red:         #e05252;
+      --bg:          #faf6f1;
+      --card:        #ffffff;
+      --card-soft:   #f3ede4;
+      --text:        #1a1208;
+      --muted:       #9b8e82;
+      --border:      #ede8e0;
+      --nav-bg:      #ffffff;
+      --input-bg:    #f9f5f0;
+      --shadow:      0 4px 20px rgba(0,0,0,0.06);
+      --shadow-sm:   0 2px 8px rgba(0,0,0,0.04);
+      --radius:      24px;
+      --radius-sm:   16px;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html.dark {
+      --bg:        #1a1410;
+      --card:      #241e18;
+      --card-soft: #2e2620;
+      --text:      #f5efe6;
+      --muted:     #9b8e82;
+      --border:    #3a3028;
+      --nav-bg:    #1e1812;
+      --input-bg:  #241e18;
+      --shadow:    0 4px 20px rgba(0,0,0,0.3);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overscroll-behavior: none;
+    }
+
+    /* ── Onboarding ── */
+    #onboarding {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 32px calc(var(--safe-bottom) + 40px);
+      z-index: 500;
+      text-align: center;
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    #onboarding.hide {
+      opacity: 0; transform: scale(0.96); pointer-events: none;
+    }
+    .ob-avatar {
+      width: 200px; height: 200px;
+      margin-bottom: 20px;
+      animation: obBounce 2s ease-in-out infinite;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(100,160,100,0.2);
+    }
+    .ob-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    @keyframes obBounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+    .ob-title {
+      font-size: 1.9rem; font-weight: 900;
+      color: var(--text); letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .ob-sub {
+      font-size: 1rem; color: var(--muted); font-weight: 500;
+      margin-bottom: 32px; line-height: 1.5;
+    }
+    .ob-input {
+      width: 100%; max-width: 300px;
+      padding: 16px 20px;
+      border: 2px solid var(--border);
+      border-radius: 99px;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text); background: var(--card);
+      text-align: center;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ob-input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(232,133,90,0.13);
+    }
+    .ob-btn {
+      width: 100%; max-width: 300px;
+      padding: 16px;
+      background: var(--orange-grad);
+      color: white; border: none; border-radius: 99px;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(232,133,90,0.4);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .ob-btn:active { opacity: 0.85; transform: scale(0.97); }
+
+    /* ── Welcome flash ── */
+    #welcome-flash {
+      position: fixed; inset: 0;
+      background: var(--orange-grad);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 499;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s;
+      text-align: center; padding: 40px;
+    }
+    #welcome-flash.show { opacity: 1; pointer-events: all; }
+    #welcome-flash .wf-avatar {
+      width: 140px; height: 140px;
+      margin-bottom: 20px;
+      animation: obBounce 1s ease-in-out infinite;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+    }
+    #welcome-flash .wf-avatar img {
+      width: 100%; height: 100%; object-fit: cover;
+      border-radius: 24px;
+    }
+    #welcome-flash .wf-text {
+      font-size: 2.2rem; font-weight: 900;
+      color: white; letter-spacing: -0.5px;
+    }
+    #welcome-flash .wf-sub {
+      font-size: 1rem; color: rgba(255,255,255,0.8);
+      font-weight: 600; margin-top: 8px;
+    }
+
+    /* ── Decorative dots ── */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow:
+        55px 140px 0 6px #E8855A33,
+        210px 90px 0 4px #7ec88044,
+        340px 220px 0 5px #8bb4e844,
+        90px 400px 0 6px #f0c24444,
+        290px 470px 0 4px #E8855A33,
+        15px 570px 0 5px #c3a7e044,
+        420px 340px 0 4px #7ec88033,
+        160px 700px 0 6px #E8855A44,
+        480px 520px 0 5px #8bb4e833,
+        70px 820px 0 4px #f0c24433;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--bg);
+      padding: calc(var(--safe-top) + 18px) 22px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    /* ── Bottom Nav ── */
+    nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      background: var(--nav-bg);
+      border-top: 1px solid var(--border);
+      padding: 8px 0 calc(var(--safe-bottom) + 8px);
+      z-index: 99;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+    nav button {
+      flex: 1;
+      padding: 6px 4px 2px;
+      border: none;
+      background: none;
+      font-size: 0.63rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+    }
+    nav button .nav-icon { font-size: 1.35rem; line-height: 1; transition: transform 0.2s; }
+    nav button.active { color: var(--orange); }
+    nav button.active .nav-icon { transform: scale(1.12); }
+
+    /* ── Content ── */
+    main {
+      padding: 16px 16px;
+      padding-bottom: calc(var(--safe-bottom) + 88px);
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .card h2 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    /* ── Hero card ── */
+    .hero-card {
+      background: var(--orange-grad);
+      border-radius: var(--radius);
+      padding: 28px 24px 24px;
+      margin-bottom: 14px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(232,133,90,0.38);
+    }
+    .hero-card::after {
+      content: '🛒';
+      position: absolute;
+      right: 18px;
+      bottom: 6px;
+      font-size: 5.5rem;
+      opacity: 0.18;
+      transform: rotate(-12deg);
+      pointer-events: none;
+    }
+    .hero-card .hero-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      opacity: 0.82;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .hero-card .hero-amount {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .hero-card .hero-sub {
+      font-size: 0.82rem;
+      opacity: 0.72;
+      font-weight: 600;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      background: var(--card-soft);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .stat-card .amount {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .stat-card .label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-card.wide { grid-column: 1 / -1; }
+    .stat-card.wide .amount { font-size: 1.9rem; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    /* ── Formulier ── */
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 0.75rem; font-weight: 700;
+      color: var(--muted); margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--input-bg);
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(232,133,90,0.13);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--orange-grad);
+      color: white;
+      border: none;
+      border-radius: 99px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 14px rgba(232,133,90,0.38);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+
+    /* ── Transactielijst ── */
+    .tx-list { display: flex; flex-direction: column; gap: 10px; }
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .tx-icon {
+      width: 46px; height: 46px;
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-info .tx-name  { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-info .tx-meta  { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .tx-amount { font-weight: 800; font-size: 1rem; color: var(--red); flex-shrink: 0; }
+    .tx-delete {
+      background: none; border: none; font-size: 1rem;
+      cursor: pointer; color: var(--muted); padding: 4px; flex-shrink: 0;
+    }
+    .tx-delete:active { color: var(--red); }
+
+    /* ── Filter chips ── */
+    .filter-row {
+      display: flex; gap: 8px; margin-bottom: 16px;
+      overflow-x: auto; padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .chip {
+      padding: 8px 18px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--muted); white-space: nowrap; cursor: pointer;
+      transition: all 0.2s; box-shadow: var(--shadow-sm);
+    }
+    .chip.active {
+      background: var(--orange); border-color: var(--orange);
+      color: white; box-shadow: 0 3px 10px rgba(232,133,90,0.3);
+    }
+
+    /* ── Lege staat ── */
+    .empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+    .empty .icon { font-size: 3.2rem; margin-bottom: 14px; }
+    .empty p { font-size: 0.9rem; font-weight: 500; }
+
+    /* ── Section verbergen ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Supermarkt kiezer ── */
+    .supermarkt-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-bottom: 4px;
+    }
+    .sm-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      border: 2px solid transparent; background: none; cursor: pointer;
+      padding: 8px 4px; border-radius: 18px; transition: all 0.15s;
+    }
+    .sm-btn:active { transform: scale(0.91); }
+    .sm-btn.selected {
+      border-color: var(--orange);
+      background: var(--orange-light);
+    }
+    html.dark .sm-btn.selected { background: rgba(232,133,90,0.1); }
+    .sm-logo {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 900;
+      letter-spacing: -0.5px; line-height: 1.1; text-align: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+    .sm-label {
+      font-size: 0.62rem; font-weight: 700;
+      color: var(--muted); text-align: center; line-height: 1.2;
+    }
+    .sm-btn.selected .sm-label { color: var(--orange-dark); }
+    #f-divers-wrap { display: none; margin-top: 12px; }
+    #f-divers-wrap.show { display: block; }
+
+    /* ── Budget ── */
+    .budget-card { margin-bottom: 14px; }
+    .budget-section { margin-bottom: 4px; }
+    .budget-divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .budget-period-label { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .budget-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .budget-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-budget-action {
+      background: none; border: none; font-size: 0.75rem;
+      color: var(--orange-dark); font-weight: 700; cursor: pointer; padding: 0;
+    }
+    .btn-budget-reset {
+      background: none; border: none; font-size: 0.75rem;
+      color: var(--muted); font-weight: 600; cursor: pointer; padding: 0;
+      text-decoration: underline; text-decoration-style: dotted;
+    }
+    .btn-budget-reset:hover { color: var(--red); }
+    .budget-edit-row { display: flex; align-items: center; gap: 8px; }
+    .budget-edit-row input { width: 100px; padding: 8px 12px; font-size: 0.9rem; border-radius: 10px; }
+    .btn-save-budget {
+      padding: 8px 16px; background: var(--orange-grad); color: white;
+      border: none; border-radius: 99px; font-size: 0.82rem; font-weight: 800; cursor: pointer;
+    }
+    .budget-bar-bg {
+      height: 10px; background: var(--border);
+      border-radius: 99px; overflow: hidden; margin-bottom: 8px;
+    }
+    .budget-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease, background 0.3s; }
+    .budget-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .budget-labels .spent { font-weight: 800; color: var(--text); }
+    .budget-no-set { padding: 6px 0; font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+    .btn-set-budget {
+      display: inline-block; margin-top: 6px;
+      padding: 6px 16px; background: var(--orange-grad); color: white;
+      border: none; border-radius: 99px; font-size: 0.78rem;
+      font-weight: 800; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(232,133,90,0.25);
+    }
+
+    /* ── Transitions ── */
+    body, .card, .stat-card, nav, input, select, .chip, .tx-item {
+      transition: background 0.25s, color 0.25s, border-color 0.25s;
+    }
+
+    /* ── Dark mode toggle ── */
+    #dark-toggle {
+      position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+      background: var(--card-soft); border: none; border-radius: 99px;
+      padding: 7px 13px; font-size: 1.1rem; cursor: pointer;
+      color: var(--text); line-height: 1;
+      transition: background 0.25s;
+    }
+    #dark-toggle:active { opacity: 0.7; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: calc(var(--safe-bottom) + 90px);
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #111; color: white;
+      padding: 12px 24px; border-radius: 99px;
+      font-size: 0.88rem; font-weight: 700;
+      opacity: 0; transition: all 0.3s; z-index: 200;
+      pointer-events: none; white-space: nowrap;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- Onboarding -->
+<div id="onboarding">
+  <div class="ob-avatar"><img src="Broccoli.jpg" alt="Karretje" /></div>
+  <div class="ob-title">Hoi! Ik ben Karretje.</div>
+  <div class="ob-sub">Ik help je bij het bijhouden<br>van je boodschappen uitgaven.<br><br>Hoe mag ik je noemen?</div>
+  <input class="ob-input" id="ob-name" type="text" placeholder="Jouw naam..." maxlength="30" autocomplete="given-name" />
+  <button class="ob-btn" onclick="finishOnboarding()">Aan de slag! 🛒</button>
+</div>
+
+<!-- Welcome flash -->
+<div id="welcome-flash">
+  <div class="wf-avatar"><img src="Broccoli.jpg" alt="Karretje" /></div>
+  <div class="wf-text" id="wf-text">Welkom!</div>
+  <div class="wf-sub">Lekker boodschappen doen 🛍</div>
+</div>
+
+<header style="position:relative">
+  <h1>🛒 Karretje</h1>
+  <button id="dark-toggle" onclick="toggleDark()" aria-label="Dark mode aan/uit">🌙</button>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard', this)">
+    <span class="nav-icon">🏠</span>
+    Overzicht
+  </button>
+  <button onclick="showTab('add', this)">
+    <span class="nav-icon">➕</span>
+    Toevoegen
+  </button>
+  <button onclick="showTab('history', this)">
+    <span class="nav-icon">📋</span>
+    Geschiedenis
+  </button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="section active">
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <div class="hero-label">Deze week uitgegeven</div>
+      <div class="hero-amount" id="hero-amount">€0,00</div>
+      <div class="hero-sub" id="hero-sub">0 aankopen bijgehouden</div>
+    </div>
+
+    <!-- Budget -->
+    <div class="card budget-card">
+      <h2>Budget</h2>
+
+      <div class="budget-section">
+        <div class="budget-header">
+          <span class="budget-period-label">📅 Deze week</span>
+          <div class="budget-actions">
+            <button onclick="toggleBudgetEdit('week')" class="btn-budget-action">Wijzigen</button>
+            <button onclick="resetBudget('week')" class="btn-budget-reset">Reset</button>
+          </div>
+        </div>
+        <div id="budget-edit-week" class="budget-edit-row" style="display:none;margin-bottom:10px">
+          <input type="number" id="budget-input-week" placeholder="bijv. 100" min="0" step="1" inputmode="decimal" />
+          <button class="btn-save-budget" onclick="saveBudget('week')">Opslaan</button>
+        </div>
+        <div id="budget-display-week"></div>
+      </div>
+
+      <div class="budget-divider"></div>
+
+      <div class="budget-section">
+        <div class="budget-header">
+          <span class="budget-period-label">🗓 Deze maand</span>
+          <div class="budget-actions">
+            <button onclick="toggleBudgetEdit('month')" class="btn-budget-action">Wijzigen</button>
+            <button onclick="resetBudget('month')" class="btn-budget-reset">Reset</button>
+          </div>
+        </div>
+        <div id="budget-edit-month" class="budget-edit-row" style="display:none;margin-bottom:10px">
+          <input type="number" id="budget-input-month" placeholder="bijv. 400" min="0" step="1" inputmode="decimal" />
+          <button class="btn-save-budget" onclick="saveBudget('month')">Opslaan</button>
+        </div>
+        <div id="budget-display-month"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="amount" id="stat-week">€0,00</div>
+        <div class="label">Deze week</div>
+      </div>
+      <div class="stat-card">
+        <div class="amount" id="stat-month">€0,00</div>
+        <div class="label">Deze maand</div>
+      </div>
+      <div class="stat-card wide">
+        <div class="amount" id="stat-total">€0,00</div>
+        <div class="label">Totaal ooit</div>
+      </div>
+    </div>
+
+    <!-- Recente aankopen -->
+    <div class="card">
+      <h2>Laatste aankopen</h2>
+      <div id="recent-list" class="tx-list"></div>
+    </div>
+  </div>
+
+  <!-- TOEVOEGEN -->
+  <div id="tab-add" class="section">
+    <div class="section-title">Nieuwe uitgave</div>
+    <div class="card">
+      <div class="form-group">
+        <label>Supermarkt</label>
+        <div class="supermarkt-grid" id="sm-grid"></div>
+        <div id="f-divers-wrap">
+          <input type="text" id="f-divers" placeholder="Omschrijving..." autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Bedrag (€)</label>
+        <input type="number" id="f-amount" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+      </div>
+
+      <div class="form-group">
+        <label>Datum</label>
+        <input type="date" id="f-date" />
+      </div>
+
+      <button class="btn-primary" onclick="addExpense()">Opslaan</button>
+    </div>
+  </div>
+
+  <!-- GESCHIEDENIS -->
+  <div id="tab-history" class="section">
+    <div class="section-title">Geschiedenis</div>
+    <div class="filter-row" id="period-filters">
+      <button class="chip active" onclick="setFilter('week', this)">Deze week</button>
+      <button class="chip" onclick="setFilter('month', this)">Deze maand</button>
+      <button class="chip" onclick="setFilter('all', this)">Alles</button>
+    </div>
+    <div id="history-list" class="tx-list"></div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+let userName = localStorage.getItem('karretje_name') || '';
+let expenses = JSON.parse(localStorage.getItem('boodschappen_v2') || '[]');
+let weekBudget  = parseFloat(localStorage.getItem('boodschappen_budget')       || '0');
+let monthBudget = parseFloat(localStorage.getItem('boodschappen_budget_month') || '0');
+
+// ── Supermarkten ──────────────────────────────────────────────────────────────
+const SUPERMARKTEN = [
+  { id: 'ah',        label: 'Albert Heijn', short: 'AH',  bg: '#00A0E2', fg: '#fff' },
+  { id: 'jumbo',     label: 'Jumbo',        short: 'J',   bg: '#FFC800', fg: '#222' },
+  { id: 'lidl',      label: 'Lidl',         short: 'Li',  bg: '#0050AA', fg: '#fff' },
+  { id: 'aldi',      label: 'Aldi',         short: 'Al',  bg: '#1E3A5F', fg: '#fff' },
+  { id: 'plus',      label: 'Plus',         short: 'P+',  bg: '#E30613', fg: '#fff' },
+  { id: 'dirk',      label: 'Dirk',         short: 'D',   bg: '#CC0000', fg: '#fff' },
+  { id: 'hoogvliet', label: 'Hoogvliet',    short: 'HV',  bg: '#00833E', fg: '#fff' },
+  { id: 'divers',    label: 'Divers',       short: '···', bg: '#7f8c8d', fg: '#fff' },
+];
+let selectedSM = null;
+
+function save() { localStorage.setItem('boodschappen_v2', JSON.stringify(expenses)); }
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function fmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+function today() { return new Date().toISOString().slice(0, 10); }
+function startOfWeek() {
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+function startOfMonth() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+let currentFilter = 'week';
+function filteredExpenses(filter) {
+  const cutoff = filter === 'week' ? startOfWeek() : filter === 'month' ? startOfMonth() : '0000-00-00';
+  return expenses.filter(e => e.date >= cutoff).sort((a,b) => b.date.localeCompare(a.date));
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'history')   renderHistory();
+}
+
+function showTabDirect(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = { dashboard:0, add:1, history:2 }[name];
+  document.querySelectorAll('nav button')[idx].classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'history')   renderHistory();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const allTime   = expenses.reduce((s, e) => s + e.amount, 0);
+  const thisWeek  = filteredExpenses('week').reduce((s, e) => s + e.amount, 0);
+  const thisMonth = filteredExpenses('month').reduce((s, e) => s + e.amount, 0);
+
+  document.getElementById('hero-amount').textContent = fmt(thisWeek);
+  document.getElementById('hero-sub').textContent    = userName
+    ? `${greeting()}, ${userName}! · ${expenses.length} aankopen`
+    : `${expenses.length} aankopen bijgehouden`;
+  document.getElementById('stat-week').textContent   = fmt(thisWeek);
+  document.getElementById('stat-month').textContent  = fmt(thisMonth);
+  document.getElementById('stat-total').textContent  = fmt(allTime);
+
+  renderBudget('week',  thisWeek);
+  renderBudget('month', thisMonth);
+
+  const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const recentEl = document.getElementById('recent-list');
+  recentEl.innerHTML = recent.length === 0
+    ? '<div class="empty"><div class="icon">🛒</div><p>Nog geen uitgaven</p></div>'
+    : recent.map(e => txHTML(e, false)).join('');
+}
+
+// ── Transactie HTML ───────────────────────────────────────────────────────────
+function txHTML(e, showDelete = true) {
+  const sm = SUPERMARKTEN.find(s => s.id === e.smId);
+  const iconHtml = sm
+    ? `<div class="tx-icon" style="background:${sm.bg};color:${sm.fg};font-size:0.7rem;font-weight:900;border-radius:12px">${sm.short}</div>`
+    : `<div class="tx-icon" style="background:#E8855A22">🛒</div>`;
+  return `
+    <div class="tx-item" id="tx-${e.id}">
+      ${iconHtml}
+      <div class="tx-info">
+        <div class="tx-name">${escHtml(e.name)}</div>
+        <div class="tx-meta">${fmtDate(e.date)}</div>
+      </div>
+      <div class="tx-amount">${fmt(e.amount)}</div>
+      ${showDelete ? `<button class="tx-delete" onclick="deleteExpense('${e.id}')">🗑</button>` : ''}
+    </div>`;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Supermarkt kiezer ─────────────────────────────────────────────────────────
+function buildSMGrid() {
+  const grid = document.getElementById('sm-grid');
+  grid.innerHTML = SUPERMARKTEN.map(sm => `
+    <button class="sm-btn" id="sm-${sm.id}" onclick="selectSM('${sm.id}')" type="button">
+      <div class="sm-logo" style="background:${sm.bg};color:${sm.fg}">${sm.short}</div>
+      <span class="sm-label">${sm.label}</span>
+    </button>`).join('');
+}
+
+function selectSM(id) {
+  selectedSM = id;
+  document.querySelectorAll('.sm-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('sm-' + id).classList.add('selected');
+  const wrap = document.getElementById('f-divers-wrap');
+  if (id === 'divers') { wrap.classList.add('show'); document.getElementById('f-divers').focus(); }
+  else { wrap.classList.remove('show'); document.getElementById('f-divers').value = ''; }
+}
+
+// ── Budget ────────────────────────────────────────────────────────────────────
+const BUDGET_KEY = { week: 'boodschappen_budget', month: 'boodschappen_budget_month' };
+function getBudget(period) { return period === 'week' ? weekBudget : monthBudget; }
+function setBudget(period, v) {
+  if (period === 'week') weekBudget = v; else monthBudget = v;
+  if (v) localStorage.setItem(BUDGET_KEY[period], v);
+  else   localStorage.removeItem(BUDGET_KEY[period]);
+}
+
+function toggleBudgetEdit(period) {
+  const row = document.getElementById('budget-edit-' + period);
+  const visible = row.style.display !== 'none';
+  ['week','month'].forEach(p => { document.getElementById('budget-edit-' + p).style.display = 'none'; });
+  if (!visible) {
+    row.style.display = 'flex';
+    const inp = document.getElementById('budget-input-' + period);
+    inp.value = getBudget(period) || '';
+    inp.focus();
+  }
+}
+
+function saveBudget(period) {
+  const val = parseFloat(document.getElementById('budget-input-' + period).value);
+  if (!val || val <= 0) { showToast('Voer een geldig budget in'); return; }
+  setBudget(period, val);
+  document.getElementById('budget-edit-' + period).style.display = 'none';
+  renderDashboard();
+  showToast('💰 Budget opgeslagen!');
+}
+
+function resetBudget(period) {
+  setBudget(period, 0);
+  renderDashboard();
+  showToast('🔄 Budget gereset');
+}
+
+function renderBudget(period, spent) {
+  const el     = document.getElementById('budget-display-' + period);
+  const budget = getBudget(period);
+  if (!budget) {
+    el.innerHTML = `
+      <div class="budget-no-set">
+        Nog geen budget ingesteld
+        <br><button class="btn-set-budget" onclick="toggleBudgetEdit('${period}')">Budget instellen</button>
+      </div>`;
+    return;
+  }
+  const pct      = Math.min(spent / budget * 100, 100);
+  const over     = spent > budget;
+  const barColor = pct < 60 ? '#E8855A' : pct < 85 ? '#f39c12' : '#e05252';
+  const rest     = budget - spent;
+  el.innerHTML = `
+    <div class="budget-bar-bg">
+      <div class="budget-bar-fill" style="width:${pct.toFixed(1)}%;background:${barColor}"></div>
+    </div>
+    <div class="budget-labels">
+      <span class="spent">${fmt(spent)} uitgegeven</span>
+      <span style="color:${over?'#e05252':'inherit'}">${over ? '⚠️ '+fmt(spent-budget)+' over budget' : fmt(rest)+' over'}</span>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;text-align:right">Budget: ${fmt(budget)}</div>`;
+}
+
+// ── Toevoegen ─────────────────────────────────────────────────────────────────
+function addExpense() {
+  if (!selectedSM) { showToast('Kies een supermarkt'); return; }
+  const sm     = SUPERMARKTEN.find(s => s.id === selectedSM);
+  const name   = selectedSM === 'divers'
+    ? (document.getElementById('f-divers').value.trim() || 'Divers')
+    : sm.label;
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  const date   = document.getElementById('f-date').value;
+  if (!amount || amount <= 0) { showToast('Voer een geldig bedrag in'); return; }
+  if (!date)                  { showToast('Kies een datum'); return; }
+  expenses.push({ id: Date.now().toString(), name, amount, date, smId: selectedSM });
+  save();
+  selectedSM = null;
+  document.querySelectorAll('.sm-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('f-divers-wrap').classList.remove('show');
+  document.getElementById('f-divers').value = '';
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-date').value = today();
+  showToast('✅ Uitgave opgeslagen!');
+  showTabDirect('dashboard');
+}
+
+// ── Verwijderen ───────────────────────────────────────────────────────────────
+function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  save();
+  renderHistory();
+  renderDashboard();
+  showToast('🗑 Verwijderd');
+}
+
+// ── Geschiedenis ──────────────────────────────────────────────────────────────
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('#period-filters .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = filteredExpenses(currentFilter);
+  const el = document.getElementById('history-list');
+  el.innerHTML = list.length === 0
+    ? '<div class="empty"><div class="icon">📭</div><p>Geen uitgaven gevonden</p></div>'
+    : list.map(e => txHTML(e, true)).join('');
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Dark mode ─────────────────────────────────────────────────────────────────
+function toggleDark() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('boodschappen_theme', isDark ? 'dark' : 'light');
+  document.getElementById('dark-toggle').textContent = isDark ? '☀️' : '🌙';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('boodschappen_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.documentElement.classList.add('dark');
+    document.getElementById('dark-toggle').textContent = '☀️';
+  }
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+function finishOnboarding() {
+  const input = document.getElementById('ob-name');
+  const name = input.value.trim();
+  if (!name) { input.focus(); input.style.borderColor = 'var(--red)'; return; }
+  userName = name;
+  localStorage.setItem('karretje_name', name);
+
+  // Hide onboarding
+  document.getElementById('onboarding').classList.add('hide');
+
+  // Show welcome flash
+  const flash = document.getElementById('welcome-flash');
+  document.getElementById('wf-text').textContent = `Welkom, ${name}!`;
+  flash.classList.add('show');
+
+  setTimeout(() => {
+    flash.classList.remove('show');
+    document.querySelector('header').style.visibility = '';
+    document.querySelector('nav').style.visibility = '';
+    renderDashboard();
+  }, 2000);
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Goedemorgen';
+  if (h < 18) return 'Goedemiddag';
+  return 'Goedenavond';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+initTheme();
+buildSMGrid();
+document.getElementById('f-date').value = today();
+
+// Enter name input on onboarding with Enter key
+document.getElementById('ob-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') finishOnboarding();
+});
+
+if (userName) {
+  // Already have name — hide onboarding immediately
+  document.getElementById('onboarding').style.display = 'none';
+  renderDashboard();
+} else {
+  // Show onboarding, hide main app nav/header until done
+  document.querySelector('header').style.visibility = 'hidden';
+  document.querySelector('nav').style.visibility = 'hidden';
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
